@@ -17,7 +17,7 @@ local events =
 }
 
 local function FinishExtendedSound(inst, soundid)
-    inst.SoundEmitter:KillSound("sound_"..tostring(soundid))
+    inst.SoundEmitter:KillSound("sound_" .. tostring(soundid))
     inst.sg.mem.soundcache[soundid] = nil
     if inst.sg.statemem.readytoremove and next(inst.sg.mem.soundcache) == nil then
         inst:Remove()
@@ -32,7 +32,7 @@ local function PlayExtendedSound(inst, soundname)
         inst.sg.mem.soundid = inst.sg.mem.soundid + 1
     end
     inst.sg.mem.soundcache[inst.sg.mem.soundid] = true
-    inst.SoundEmitter:PlaySound(inst.sounds[soundname], "sound_"..tostring(inst.sg.mem.soundid))
+    inst.SoundEmitter:PlaySound(inst.sounds[soundname], "sound_" .. tostring(inst.sg.mem.soundid))
     inst:DoTaskInTime(5, FinishExtendedSound, inst.sg.mem.soundid)
 end
 
@@ -47,12 +47,11 @@ end
 
 local states =
 {
-    State{
+    State {
         name = "idle",
         tags = { "idle", "canrotate" },
 
         onenter = function(inst)
-
             inst.components.locomotor:StopMoving()
             if not inst.AnimState:IsCurrentAnimation("idle") then
                 inst.AnimState:PlayAnimation("idle", true)
@@ -60,7 +59,7 @@ local states =
         end,
     },
 
-    State{
+    State {
         name = "attack",
         tags = { "attack", "busy" },
 
@@ -68,14 +67,14 @@ local states =
             inst.sg.statemem.target = target
             inst.Physics:Stop()
             inst.components.combat:StartAttack()
-            inst.AnimState:PlayAnimation("atk")
+            inst.AnimState:PlayAnimation("appear")
             PlayExtendedSound(inst, "attack_grunt")
-			inst.components.combat:DoAttack(inst.sg.statemem.target)
+            inst.components.combat:DoAttack(inst.sg.statemem.target)
         end,
 
         timeline =
         {
-            TimeEvent(3*FRAMES, function(inst) PlayExtendedSound(inst, "attack") end),
+            TimeEvent(3 * FRAMES, function(inst) PlayExtendedSound(inst, "attack") end),
         },
 
         events =
@@ -91,9 +90,9 @@ local states =
         },
     },
 
-    State{
+    State {
         name = "hit",
-        tags = { "busy", "hit" }, -- , "fading" 
+        tags = { "busy", "hit" }, -- , "fading"
 
         onenter = function(inst)
             inst.Physics:Stop()
@@ -102,7 +101,7 @@ local states =
 
         timeline =
         {
-			--[[TimeEvent(1*FRAMES, function(inst) fading(inst, 0.36) end),
+            --[[TimeEvent(1*FRAMES, function(inst) fading(inst, 0.36) end),
             TimeEvent(3*FRAMES, function(inst) fading(inst, 0.32) end),
             TimeEvent(5*FRAMES, function(inst) fading(inst, 0.28) end),
             TimeEvent(7*FRAMES, function(inst) fading(inst, 0.24) end),
@@ -129,12 +128,12 @@ local states =
                     end
                 end
 
-				inst.sg:GoToState("appear")
+                inst.sg:GoToState("appear")
             end),
         },
     },
 
-    State{
+    State {
         name = "taunt",
         tags = { "busy" },
 
@@ -150,7 +149,7 @@ local states =
         },
     },
 
-    State{
+    State {
         name = "appear",
         tags = { "busy" },
 
@@ -166,11 +165,13 @@ local states =
 
         events =
         {
-            EventHandler("animover", function(inst) inst.sg:GoToState("idle") end)
+            EventHandler("animover", function(inst)
+                inst.sg:GoToState("idle")
+            end)
         },
     },
 
-    State{
+    State {
         name = "death",
         tags = { "busy" },
 
@@ -198,7 +199,7 @@ local states =
         end
     },
 
-    State{
+    State {
         name = "disappear",
         tags = { "busy", "noattack" },
 
@@ -224,10 +225,10 @@ local states =
         end,
     },
 
-    State{ 
+    State {
         name = "teleport_disapper",
         tags = { "busy", "noattack" },
-    
+
         onenter = function(inst)
             inst.Physics:Stop()
             inst.AnimState:PlayAnimation("disappear")
@@ -236,14 +237,14 @@ local states =
         timeline =
         {
         },
-    
+
         events =
         {
             EventHandler("animover", function(inst) inst.sg:GoToState("appear") end),
         },
     },
 
-    State{
+    State {
         name = "action",
         onenter = function(inst, playanim)
             inst.Physics:Stop()
@@ -258,4 +259,4 @@ local states =
 }
 CommonStates.AddWalkStates(states)
 
-return StateGraph("nervoustick", states, events, "idle")
+return StateGraph("nervoustick", states, events, "appear")
